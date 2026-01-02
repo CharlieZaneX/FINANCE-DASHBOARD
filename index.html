@@ -1,0 +1,1807 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Finance Dashboard (Preview)</title>
+  <style>
+    .card.editing{box-shadow: 0 0 0 1px rgba(255,77,222,.22) inset, var(--shadow), 0 0 34px rgba(255,77,222,.14);}
+    .card.editing input{border-color: rgba(255,77,222,.55); box-shadow: 0 0 0 3px rgba(255,77,222,.12), 0 0 26px rgba(255,77,222,.10);}
+
+    .table tbody tr:hover{background: rgba(110,231,255,.06);}
+
+    .pill.goodPill{border-color: rgba(124,255,107,.35); box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset, 0 0 22px rgba(124,255,107,.16);}
+    .pill.badPill{border-color: rgba(255,59,122,.35); box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset, 0 0 22px rgba(255,59,122,.16);}
+
+    .invalid{border-color: rgba(255,59,122,.65) !important; box-shadow: 0 0 0 3px rgba(255,59,122,.14), 0 0 26px rgba(255,59,122,.10) !important;}
+    .inlineError{min-height:16px; margin-top:6px; font-size:12px; font-family: var(--mono); color: rgba(255,59,122,.92); text-shadow: 0 0 10px rgba(255,59,122,.10);}
+    .shake{animation: shake .28s ease-in-out 0s 1;}
+    @keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}100%{transform:translateX(0)}}
+
+    .toastHost{position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:9999; width:min(520px, calc(100% - 24px)); pointer-events:none;}
+    .toast{pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 12px; border-radius:14px; border:1px solid rgba(110,231,255,.18); background: rgba(9,12,20,.92); box-shadow: var(--shadow); font-family: var(--mono);}
+    .toast .msg{font-size:12px; color: rgba(234,242,255,.9);}
+    .toast .actions{display:flex; gap:10px;}
+    .toast .tbtn{height:28px; padding:0 10px; border-radius:12px; font-size:12px; width:auto;}
+    .toast .tbtn.secondary{background: rgba(255,255,255,.03);}
+    :root{
+      --bg:#070A12;
+      --bg2:#050612;
+      --card: rgba(12, 16, 26, .78);
+      --card2: rgba(9, 12, 20, .92);
+      --text:#EAF2FF;
+      --muted:#9AA6C4;
+      --neonCyan:#6EE7FF;
+      --neonMag:#FF4DDE;
+      --neonLime:#7CFF6B;
+      --good: var(--neonLime);
+      --bad:#FF3B7A;
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+      --glassBorder: rgba(255,255,255,.08);
+      --grid: rgba(110,231,255,.06);
+      --scan: rgba(255,255,255,.04);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 12% 0%, rgba(255,77,222,.20), transparent 60%),
+        radial-gradient(900px 650px at 92% 10%, rgba(110,231,255,.22), transparent 58%),
+        radial-gradient(900px 700px at 55% 120%, rgba(124,255,107,.10), transparent 58%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 42px 42px;
+      opacity:.55;
+      mix-blend-mode: screen;
+      transform: translateZ(0);
+    }
+
+    body::after{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,0) 0px,
+        rgba(255,255,255,0) 2px,
+        var(--scan) 3px
+      );
+      opacity:.22;
+      mix-blend-mode: overlay;
+      animation: scan 8s linear infinite;
+    }
+
+    @keyframes scan{
+      0%{transform: translateY(0)}
+      100%{transform: translateY(24px)}
+    }
+
+    .wrap{max-width:1200px; margin:28px auto; padding:0 16px;}
+
+    header{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:18px;
+      position:relative;
+    }
+
+    header h1{
+      font-size:22px;
+      margin:0;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      font-family: var(--mono);
+      text-shadow:
+        0 0 10px rgba(110,231,255,.45),
+        0 0 22px rgba(255,77,222,.20);
+    }
+
+    header .sub{
+      color:var(--muted);
+      font-size:13px;
+      font-family: var(--mono);
+      letter-spacing:.2px;
+    }
+
+    .grid{display:grid; grid-template-columns: 310px 1fr; gap:16px;}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
+    .leftcol,.rightcol{display:flex; flex-direction:column; gap:16px;}
+
+    .split{display:grid; grid-template-columns: 1fr 1fr; gap:16px;}
+    @media (max-width: 980px){ .split{grid-template-columns:1fr;} }
+
+    .card{
+      position:relative;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0)) , var(--card);
+      border:1px solid var(--glassBorder);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      overflow:hidden;
+    }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      border-radius: calc(var(--radius) + 2px);
+      padding:2px;
+      background: linear-gradient(135deg,
+        rgba(110,231,255,.55),
+        rgba(255,77,222,.50),
+        rgba(124,255,107,.35)
+      );
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity:.55;
+      pointer-events:none;
+    }
+
+    .card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(700px 120px at 30% 0%, rgba(110,231,255,.10), transparent 60%),
+        radial-gradient(700px 120px at 80% 100%, rgba(255,77,222,.10), transparent 60%);
+      opacity:.9;
+      pointer-events:none;
+      mix-blend-mode: screen;
+      animation: shimmer 10s ease-in-out infinite;
+    }
+
+    @keyframes shimmer{
+      0%,100%{transform: translateY(0)}
+      50%{transform: translateY(-6px)}
+    }
+
+    .card > *{position:relative; z-index:1;}
+
+    .card .title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:nowrap;
+      min-width:0;
+    }
+
+    /* Month card header is a single control group, so center it */
+    .monthCard .title{
+      justify-content:center;
+    }
+    .monthCard .monthControls{
+      width:100%;
+      justify-content:center;
+    }
+
+    @media (max-width: 520px){
+      .card .title{flex-wrap:wrap;}
+    }
+
+    .title h2{
+      font-size:12px;
+      margin:0;
+      color:rgba(234,242,255,.72);
+      letter-spacing:1.3px;
+      text-transform:uppercase;
+      font-family: var(--mono);
+      white-space:nowrap;
+    }
+
+    .big{
+      justify-content:center;
+      text-align:center;
+      font-size:34px;
+      font-weight:900;
+      letter-spacing:.5px;
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+      margin:6px 0 0;
+      font-family: var(--mono);
+      text-shadow: 0 0 16px rgba(110,231,255,.20);
+    }
+
+    .pill{
+      font-size:12px;
+      color:rgba(234,242,255,.78);
+      padding:6px 10px;
+      border:1px solid rgba(110,231,255,.25);
+      border-radius:999px;
+      background: rgba(5,7,14,.55);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.04) inset,
+        0 0 18px rgba(110,231,255,.12);
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing:.5px;
+      white-space:nowrap;
+    }
+
+    .monthControls{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      flex-wrap:nowrap;
+      min-width:0;
+    }
+
+    .miniBtn{
+      height: 30px;
+      width: 30px;
+      border-radius: 12px;
+      padding:0;
+      font-family: var(--mono);
+      font-size: 14px;
+      background: rgba(255,255,255,.03);
+      border:1px solid rgba(110,231,255,.22);
+      color: rgba(234,242,255,.92);
+      cursor:pointer;
+      box-shadow: 0 0 18px rgba(110,231,255,.06);
+      flex:0 0 auto;
+    }
+    .miniBtn:hover{transform: translateY(-1px);}
+
+    .monthInput{
+      height: 30px;
+      border-radius: 12px;
+      border:1px solid rgba(110,231,255,.20);
+      background: var(--card2);
+      color: var(--text);
+      padding: 6px 10px;
+      font-size: 12px;
+      font-family: var(--mono);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.03) inset,
+        0 0 22px rgba(110,231,255,.06);
+      width: 120px;
+      min-width: 110px;
+      flex:0 1 auto;
+    }
+
+    .row{display:flex; gap:10px; flex-wrap:wrap;}
+
+    label{
+      display:block;
+      font-size:12px;
+      color:rgba(154,166,196,.95);
+      margin:10px 0 6px;
+      font-family: var(--mono);
+      letter-spacing:.2px;
+    }
+
+    input, button{
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(110,231,255,.20);
+      background: var(--card2);
+      color: var(--text);
+      padding:10px 12px;
+      outline:none;
+      font-size:14px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.03) inset,
+        0 0 22px rgba(110,231,255,.06);
+      transition: transform .08s ease, border-color .15s ease, box-shadow .15s ease;
+      font-family: var(--mono);
+    }
+
+    input:focus{
+      border-color: rgba(110,231,255,.55);
+      box-shadow:
+        0 0 0 3px rgba(110,231,255,.16),
+        0 0 26px rgba(110,231,255,.10);
+    }
+
+    input[type="number"]{appearance:textfield}
+
+    button{
+      cursor:pointer;
+      font-weight:800;
+      letter-spacing:.6px;
+      text-transform: uppercase;
+      background:
+        linear-gradient(180deg, rgba(110,231,255,.22), rgba(110,231,255,.06)),
+        radial-gradient(120px 60px at 25% 20%, rgba(255,77,222,.18), transparent 70%);
+      border:1px solid rgba(110,231,255,.35);
+    }
+
+    button:hover{transform: translateY(-1px);}
+    button:active{transform: translateY(0px) scale(.99);}
+
+    button.secondary{
+      background: rgba(255,255,255,.03);
+      border:1px solid rgba(255,77,222,.22);
+      box-shadow: 0 0 22px rgba(255,77,222,.06);
+    }
+
+    .btnrow{display:flex; gap:10px; margin-top:12px; margin-bottom:12px;}
+    .btnrow button{width:auto; flex:1;}
+
+    .tiny, .hint{
+      margin-top:10px;
+      font-size:12px;
+      line-height:1.35;
+      color: rgba(154,166,196,.95);
+      font-family: var(--mono);
+      letter-spacing: .15px;
+      text-shadow: 0 0 10px rgba(110,231,255,.06);
+    }
+    .hint{margin-top:4px;}
+    .muted{color: rgba(154,166,196,.95); font-family: var(--mono);} 
+
+    .tableWrap{margin-top:12px;}
+
+    .chartTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
+    }
+    .hoverValue{
+      font-family: var(--mono);
+      font-size:12px;
+      color: rgba(234,242,255,.78);
+      display:flex;
+      align-items:baseline;
+      gap:8px;
+      white-space:nowrap;
+    }
+    .chartWrap{
+      height:340px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.06);
+      background: rgba(5,7,14,.25);
+      overflow:hidden;
+    }
+
+    .table{
+      width:100%;
+      border-collapse:collapse;
+      border-radius:14px;
+      border:1px solid rgba(110,231,255,.18);
+      background: rgba(5,7,14,.40);
+      table-layout: fixed;
+    }
+
+    .table th, .table td{
+      font-family: var(--mono);
+      color: rgba(234,242,255,.92);
+      font-size: 12px;
+      line-height: 1.2;
+      padding: 7px 6px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      vertical-align: middle;
+      text-shadow: 0 0 10px rgba(110,231,255,.05);
+      font-variant-numeric: tabular-nums;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .table tbody tr:last-child td{ border-bottom:none; }
+
+    .amt{ font-weight: 800; letter-spacing:.2px; }
+    .good{ color: var(--good) !important; text-shadow: 0 0 10px rgba(124,255,107,.18); }
+    .bad{ color: var(--bad) !important; text-shadow: 0 0 10px rgba(255,59,122,.18); }
+
+    .table col.cAmt{width: 86px;}
+    .table col.cDate{width: 70px;}
+    .table col.cActions{width: 64px;}
+
+    .table.cc col.cAmt{width: 96px;}
+    .table.cc col.cActions{width: 64px;}
+
+    .table thead th.colText{ text-align:left; }
+    .table thead th.colAmt,
+    .table thead th.colDate{ text-align:center; }
+    .table thead th.colActions{ text-align:right; }
+
+    .table td.colAmt,
+    .table td.colDate{ text-align:center; }
+    .table td.colText{ text-align:left; }
+    .table td.colActions{ white-space: nowrap; overflow:visible; }
+
+    .rowActions{
+      display:flex;
+      justify-content:flex-end;
+      align-items:center;
+      gap:6px;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+    }
+
+    .actionBtn,.delbtn{
+      height: 26px;
+      width: 26px;
+      padding:0;
+      border-radius:9px;
+      font-size:14px;
+      cursor:pointer;
+      color: var(--text);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      letter-spacing:0;
+      text-transform:none;
+      box-shadow: none;
+      border:1px solid rgba(110,231,255,.25);
+      background: rgba(110,231,255,.08);
+    }
+
+    .delbtn{
+      background: rgba(255,59,122,.12);
+      border:1px solid rgba(255,59,122,.30);
+    }
+    .actionBtn:hover,.delbtn:hover{transform: translateY(-1px);}
+
+    @media (prefers-reduced-motion: reduce){
+      body::after, .card::after{animation:none !important;}
+      button{transition:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Finance Dashboard</h1>
+        <div class="sub">Preview inside ChatGPT (manual-entry MVP)</div>
+      </div>
+      <div class="pill" id="todayPill">—</div>
+    </header>
+
+    <div class="grid">
+      <div class="leftcol">
+        <div class="card monthCard">
+          <div class="title">
+            <div class="monthControls" aria-label="Month selector">
+              <button class="miniBtn" id="prevMonthBtn" title="Previous month" aria-label="Previous month">◀</button>
+              <input class="monthInput" id="monthPicker" type="month" aria-label="Select month" />
+              <button class="miniBtn" id="nextMonthBtn" title="Next month" aria-label="Next month">▶</button>
+            </div>
+          </div>
+          <div class="big" id="monthName">—</div>
+          
+        </div>
+
+        <div class="card" id="netCard">
+          <div class="title">
+            <h2>Net this month</h2>
+            <span class="pill" id="netPill">$0.00</span>
+          </div>
+          <div class="big" id="netValue">$0.00</div>
+        </div>
+
+        <div class="card" id="checkingCard">
+          <div class="title">
+            <h2>Checking account</h2>
+            <span class="pill">manual</span>
+          </div>
+          <div class="big"><span id="checkingDisplay">$0.00</span></div>
+
+          <label for="checkingInput">Set starting checking balance (used for projections)</label>
+          <input id="checkingInput" type="number" step="0.01" placeholder="e.g. 4072.93" />
+          <div class="btnrow">
+            <button id="saveCheckingBtn">Save balance</button>
+            <button class="secondary" id="resetAllBtn">Reset all</button>
+          </div>
+          <div class="inlineError" id="checkingError"></div>
+          <div class="tiny">Bank linking can be added later. For now, manual per your mockup.</div>
+        </div>
+
+        <div class="card" id="cardsCard">
+          <div class="title">
+            <h2>Credit cards</h2>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:nowrap; max-width:100%;">
+              <span class="pill" id="ccTotalPill">$0.00</span>
+              <span class="pill">manual</span>
+            </div>
+          </div>
+
+          <label for="cc_issuer">Issuer name</label>
+          <input id="cc_issuer" placeholder="e.g. Capital One" />
+
+          <label for="cc_balance">Current balance</label>
+          <input id="cc_balance" type="number" step="0.01" placeholder="e.g. 1234.56" />
+
+          <div class="btnrow">
+            <button id="addCardBtn">Add card</button>
+            <button class="secondary" id="clearCardsBtn">Clear cards</button>
+          </div>
+          <div class="inlineError" id="ccError"></div>
+
+          <div class="tableWrap">
+            <table class="table cc" id="cardsTable">
+              <colgroup>
+                <col class="cText" />
+                <col class="cAmt" />
+                <col class="cActions" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="colText">Issuer</th>
+                  <th class="amt colAmt">Balance</th>
+                  <th class="colActions"></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="tiny">Click <b>Edit</b> on a row to change it, or <b>Delete</b> to remove it.</div>
+        </div>
+      </div>
+
+      <div class="rightcol">
+        <div class="split">
+          <div class="card" id="expensesCard">
+            <div class="title">
+              <h2>Monthly expenses</h2>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:nowrap; max-width:100%;">
+                <span class="pill" id="expTotalPill">$0.00</span>
+                <span class="pill" id="expModePill">schedule</span>
+              </div>
+            </div>
+
+            <label for="exp_name">Expense name</label>
+            <input id="exp_name" placeholder="e.g. Rent" />
+
+            <div class="row">
+              <div style="flex:1; min-width:150px;">
+                <label for="exp_amount">Amount</label>
+                <input id="exp_amount" type="number" step="0.01" placeholder="e.g. 1000.00" />
+              </div>
+              <div style="flex:1; min-width:160px;">
+                <label for="exp_date">Due date</label>
+                <input id="exp_date" type="date" />
+              </div>
+            </div>
+
+            <div class="btnrow">
+              <button id="addExpenseBtn">Add expense</button>
+              <button class="secondary" id="clearExpensesBtn">Clear expenses</button>
+            </div>
+            <div class="inlineError" id="expError"></div>
+
+            <div class="tableWrap">
+              <table class="table" id="expensesTable">
+                <colgroup>
+                  <col class="cText" />
+                  <col class="cAmt" />
+                  <col class="cDate" />
+                  <col class="cActions" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th class="colText">Expense</th>
+                    <th class="amt colAmt">Amount</th>
+                    <th class="colDate">Due</th>
+                    <th class="colActions"></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="tiny">Use <b>Edit</b> to correct a submitted expense without deleting it.</div>
+          </div>
+
+          <div class="card" id="incomeCard">
+            <div class="title">
+              <h2>Income</h2>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:nowrap; max-width:100%;">
+                <span class="pill" id="incTotalPill">$0.00</span>
+                <span class="pill" id="incModePill">schedule</span>
+              </div>
+            </div>
+
+            <label for="inc_from">From</label>
+            <input id="inc_from" placeholder="e.g. Superior Contracting" />
+
+            <div class="row">
+              <div style="flex:1; min-width:150px;">
+                <label for="inc_amount">Amount</label>
+                <input id="inc_amount" type="number" step="0.01" placeholder="e.g. 1000.00" />
+              </div>
+              <div style="flex:1; min-width:160px;">
+                <label for="inc_date">Deposit date</label>
+                <input id="inc_date" type="date" />
+              </div>
+            </div>
+
+            <div class="btnrow">
+              <button id="addIncomeBtn">Add income</button>
+              <button class="secondary" id="clearIncomeBtn">Clear income</button>
+            </div>
+            <div class="inlineError" id="incError"></div>
+
+            <div class="tableWrap">
+              <table class="table" id="incomeTable">
+                <colgroup>
+                  <col class="cText" />
+                  <col class="cAmt" />
+                  <col class="cDate" />
+                  <col class="cActions" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th class="colText">From</th>
+                    <th class="amt colAmt">Amount</th>
+                    <th class="colDate">Deposit</th>
+                    <th class="colActions"></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="tiny">Use <b>Edit</b> to correct a submitted income without deleting it.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="chartTop">
+            <div>
+              <div class="title" style="margin:0;"><h2>Projected checking balance</h2></div>
+              <div class="hint">Hover across the line to preview the expected checking balance per day.</div>
+            </div>
+            <div class="hoverValue" id="hoverValue">
+              <span class="muted">Hover:</span>
+              <strong>—</strong>
+              <span class="muted" id="hoverDate">—</span>
+            </div>
+          </div>
+          <div class="chartWrap"><canvas id="balanceChart" style="width:100%;height:100%;display:block;"></canvas></div>
+          <div class="tiny">Y-axis auto-scales to your data.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toastHost" id="toastHost" aria-live="polite"></div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function money(n){
+      const v = Number(n || 0);
+      return v.toLocaleString(undefined, { style:"currency", currency:"USD" });
+    }
+    function isoDate(d){
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
+    function parseNumber(v){
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+    function safeDateStr(s){
+      return (typeof s === "string" && /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(s)) ? s : "";
+    }
+    function sortByDateAsc(a,b){
+      return (a.date || "").localeCompare(b.date || "");
+    }
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[s]));
+    }
+    function formatShortDate(iso){
+      if(!iso) return "—";
+      const [y,m,d] = iso.split("-").map(Number);
+      const dt = new Date(y, m-1, d);
+      return dt.toLocaleDateString(undefined, { month:"2-digit", day:"2-digit", year:"2-digit" });
+    }
+
+    function makeId(){
+      if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+      return `id_${Math.random().toString(16).slice(2)}_${Date.now()}`;
+    }
+    function clone(obj){
+      if (globalThis.structuredClone) return structuredClone(obj);
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function animateCurrency(el, toValue, opts={}){
+      if(!el) return;
+      const dur = Math.max(180, Math.min(900, opts.duration ?? 420));
+      const from = Number.isFinite(Number(el.dataset.prev)) ? Number(el.dataset.prev) : null;
+      const start = (from === null) ? toValue : from;
+      el.dataset.prev = String(toValue);
+      if(start === toValue){
+        el.textContent = money(toValue);
+        return;
+      }
+      const t0 = performance.now();
+      const ease = (t) => 1 - Math.pow(1 - t, 3);
+      const step = (t) => {
+        const p = Math.min(1, (t - t0) / dur);
+        const v = start + (toValue - start) * ease(p);
+        el.textContent = money(v);
+        if(p < 1) requestAnimationFrame(step);
+        else el.textContent = money(toValue);
+      };
+      requestAnimationFrame(step);
+    }
+
+    function setPillPolarity(pill, polarity){
+      if(!pill) return;
+      pill.classList.remove("goodPill","badPill");
+      if(polarity === "good") pill.classList.add("goodPill");
+      if(polarity === "bad") pill.classList.add("badPill");
+    }
+
+    function clearInvalid(inputs){
+      for(const inp of (inputs || [])) inp?.classList?.remove("invalid");
+    }
+
+    function showInlineError(cardEl, inputEls, errorEl, msg){
+      if(errorEl) errorEl.textContent = msg;
+      for(const inp of (inputEls || [])) inp?.classList?.add("invalid");
+      if(cardEl){
+        cardEl.classList.remove("shake");
+        void cardEl.offsetWidth;
+        cardEl.classList.add("shake");
+      }
+    }
+
+    function clearInlineError(el){
+      if(el) el.textContent = "";
+    }
+
+    function setEditing(cardId, on){
+      const el = $(cardId);
+      if(el) el.classList.toggle("editing", !!on);
+    }
+
+    const now = new Date();
+    const KEY = "finance_dashboard_preview_v2";
+
+    const defaultState = {
+      checkingStart: 0,
+      viewYear: now.getFullYear(),
+      viewMonth: now.getMonth(),
+      cards: [],
+      expenses: [],
+      income: []
+    };
+
+    let state = loadState();
+
+    let editExpenseId = null;
+    let editIncomeId = null;
+    let editCardId = null;
+
+    let undoState = null;
+    let undoTimer = null;
+
+    function showToast(msg, actions=[]){
+      const host = $("toastHost");
+      if(!host) return;
+      host.innerHTML = "";
+      const t = document.createElement("div");
+      t.className = "toast";
+      const m = document.createElement("div");
+      m.className = "msg";
+      m.textContent = msg;
+      const a = document.createElement("div");
+      a.className = "actions";
+      for(const act of actions){
+        const b = document.createElement("button");
+        b.className = "tbtn" + (act.secondary ? " secondary" : "");
+        b.textContent = act.label;
+        b.addEventListener("click", () => act.onClick?.());
+        a.appendChild(b);
+      }
+      t.appendChild(m);
+      t.appendChild(a);
+      host.appendChild(t);
+    }
+
+    function clearToast(){
+      const host = $("toastHost");
+      if(host) host.innerHTML = "";
+    }
+
+    function scheduleToastClear(ms){
+      if(undoTimer) clearTimeout(undoTimer);
+      undoTimer = setTimeout(() => clearToast(), ms);
+    }
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(KEY);
+        if(!raw) return clone(defaultState);
+        const s = JSON.parse(raw);
+        const st = clone(defaultState);
+
+        st.checkingStart = parseNumber(s.checkingStart);
+        st.viewYear = Number.isFinite(Number(s.viewYear)) ? Number(s.viewYear) : defaultState.viewYear;
+        st.viewMonth = Number.isFinite(Number(s.viewMonth)) ? Number(s.viewMonth) : defaultState.viewMonth;
+
+        st.cards = Array.isArray(s.cards) ? s.cards.map(x => ({
+          id: x.id || makeId(),
+          issuer: String(x.issuer || "").slice(0, 60),
+          balance: parseNumber(x.balance)
+        })).filter(x => x.issuer) : [];
+
+        st.expenses = Array.isArray(s.expenses) ? s.expenses.map(x => ({
+          id: x.id || makeId(),
+          name: String(x.name || "").slice(0, 60),
+          amount: parseNumber(x.amount),
+          date: safeDateStr(x.date)
+        })).filter(x => x.name && x.date) : [];
+
+        st.income = Array.isArray(s.income) ? s.income.map(x => ({
+          id: x.id || makeId(),
+          from: String(x.from || "").slice(0, 60),
+          amount: parseNumber(x.amount),
+          date: safeDateStr(x.date)
+        })).filter(x => x.from && x.date) : [];
+
+        st.cards.sort((a,b) => (a.issuer||"").localeCompare(b.issuer||""));
+        st.expenses.sort(sortByDateAsc);
+        st.income.sort(sortByDateAsc);
+        return st;
+      } catch {
+        return clone(defaultState);
+      }
+    }
+
+    function saveState(){
+      try{ localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+    }
+
+    function daysIn(y, m0){ return new Date(y, m0 + 1, 0).getDate(); }
+    function clampDayToMonth(y, m0, day){ return Math.max(1, Math.min(daysIn(y,m0), day)); }
+    function ymToMonthValue(y, m0){ return `${y}-${String(m0+1).padStart(2,'0')}`; }
+
+    function renderMonthUI(opts={ syncPicker:true }){
+      const y = state.viewYear;
+      const m0 = state.viewMonth;
+      const startOfMonth = new Date(y, m0, 1);
+      $("monthName").textContent = startOfMonth.toLocaleString(undefined, { month:"long" }).toUpperCase();
+      $("todayPill").textContent = `Today: ${now.toLocaleDateString()}`;
+      if(opts.syncPicker){
+        const picker = $("monthPicker");
+        if(picker) picker.value = ymToMonthValue(y, m0);
+      }
+    }
+
+    function setViewMonth(y, m0, opts={ syncPicker:true }){
+      state.viewYear = y;
+      state.viewMonth = m0;
+      saveState();
+      renderMonthUI(opts);
+      renderTotals();
+      updateChart();
+
+      const expV = $("exp_date").value;
+      const incV = $("inc_date").value;
+      const prefix = `${y}-${String(m0+1).padStart(2,'0')}-`;
+      const expOk = expV && expV.startsWith(prefix);
+      const incOk = incV && incV.startsWith(prefix);
+      const suggestedDay = clampDayToMonth(y, m0, now.getDate());
+      const suggested = isoDate(new Date(y, m0, suggestedDay));
+      if(!expOk) $("exp_date").value = suggested;
+      if(!incOk) $("inc_date").value = suggested;
+    }
+
+    function getMonthlyTotals(){
+      const y = state.viewYear;
+      const m0 = state.viewMonth;
+      const expTotal = state.expenses.reduce((sum, e) => {
+        const [yy, mm] = (e.date || "").split("-").map(Number);
+        return (yy === y && (mm-1) === m0) ? (sum + parseNumber(e.amount)) : sum;
+      }, 0);
+      const incTotal = state.income.reduce((sum, i) => {
+        const [yy, mm] = (i.date || "").split("-").map(Number);
+        return (yy === y && (mm-1) === m0) ? (sum + parseNumber(i.amount)) : sum;
+      }, 0);
+      const ccTotal = state.cards.reduce((sum, c) => sum + parseNumber(c.balance), 0);
+      return { expTotal, incTotal, ccTotal, net: incTotal - expTotal };
+    }
+
+    function renderTotals(){
+      const { expTotal, incTotal, ccTotal, net } = getMonthlyTotals();
+
+      const ccEl = $("ccTotalPill");
+      const expEl = $("expTotalPill");
+      const incEl = $("incTotalPill");
+      const netPill = $("netPill");
+      const netVal = $("netValue");
+
+      animateCurrency(ccEl, ccTotal);
+      animateCurrency(expEl, expTotal);
+      animateCurrency(incEl, incTotal);
+
+      animateCurrency(netPill, net);
+      animateCurrency(netVal, net);
+
+      setPillPolarity(expEl, expTotal > 0 ? "bad" : null);
+      setPillPolarity(incEl, incTotal > 0 ? "good" : null);
+      setPillPolarity(netPill, net >= 0 ? "good" : "bad");
+
+      if(netVal){
+        netVal.classList.remove("good","bad");
+        netVal.classList.add(net >= 0 ? "good" : "bad");
+      }
+    }
+
+    function setExpenseMode(editing){
+      $("expModePill").textContent = editing ? "editing" : "schedule";
+      $("addExpenseBtn").textContent = editing ? "Save expense" : "Add expense";
+      setEditing("expensesCard", editing);
+    }
+    function setIncomeMode(editing){
+      $("incModePill").textContent = editing ? "editing" : "schedule";
+      $("addIncomeBtn").textContent = editing ? "Save income" : "Add income";
+      setEditing("incomeCard", editing);
+    }
+    function setCardMode(editing){
+      $("addCardBtn").textContent = editing ? "Save card" : "Add card";
+      setEditing("cardsCard", editing);
+    }
+
+    function renderBalances(){
+      $("checkingDisplay").textContent = money(state.checkingStart);
+      $("checkingInput").value = state.checkingStart ? String(state.checkingStart) : "";
+    }
+
+    function renderCards(){
+      const tbody = $("cardsTable").querySelector("tbody");
+      tbody.innerHTML = "";
+
+      if(!state.cards.length){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td class="muted" colspan="3">No cards added yet.</td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+
+      for(const c of state.cards){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="colText" title="${escapeHtml(c.issuer)}">${escapeHtml(c.issuer)}</td>
+          <td class="amt colAmt">${money(c.balance)}</td>
+          <td class="colActions">
+            <div class="rowActions">
+              <button class="actionBtn" data-edit-card="${c.id}" title="Edit" aria-label="Edit">✎</button>
+              <button class="delbtn" data-del-card="${c.id}" title="Delete" aria-label="Delete">🗑</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderTables(){
+      const expBody = $("expensesTable").querySelector("tbody");
+      expBody.innerHTML = "";
+      if(!state.expenses.length){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td class="muted" colspan="4">No expenses for this month yet.</td>`;
+        expBody.appendChild(tr);
+      } else {
+        for(const item of state.expenses){
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="colText" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</td>
+            <td class="amt bad colAmt">-${money(item.amount)}</td>
+            <td class="muted colDate">${formatShortDate(item.date)}</td>
+            <td class="colActions">
+              <div class="rowActions">
+                <button class="actionBtn" data-edit-exp="${item.id}" title="Edit" aria-label="Edit">✎</button>
+                <button class="delbtn" data-del-exp="${item.id}" title="Delete" aria-label="Delete">🗑</button>
+              </div>
+            </td>
+          `;
+          expBody.appendChild(tr);
+        }
+      }
+
+      const incBody = $("incomeTable").querySelector("tbody");
+      incBody.innerHTML = "";
+      if(!state.income.length){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td class="muted" colspan="4">No income for this month yet.</td>`;
+        incBody.appendChild(tr);
+      } else {
+        for(const item of state.income){
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="colText" title="${escapeHtml(item.from)}">${escapeHtml(item.from)}</td>
+            <td class="amt good colAmt">+${money(item.amount)}</td>
+            <td class="muted colDate">${formatShortDate(item.date)}</td>
+            <td class="colActions">
+              <div class="rowActions">
+                <button class="actionBtn" data-edit-inc="${item.id}" title="Edit" aria-label="Edit">✎</button>
+                <button class="delbtn" data-del-inc="${item.id}" title="Delete" aria-label="Delete">🗑</button>
+              </div>
+            </td>
+          `;
+          incBody.appendChild(tr);
+        }
+      }
+    }
+
+    function buildDailyProjection(){
+      const y = state.viewYear;
+      const m0 = state.viewMonth;
+      const dim = daysIn(y, m0);
+
+      const labels = Array.from({length: dim}, (_,i)=> i+1);
+      const incomeByDay = new Map();
+      const expenseByDay = new Map();
+
+      for(const inc of state.income){
+        const [yy,mm,d] = inc.date.split("-").map(Number);
+        if(yy === y && (mm-1) === m0) incomeByDay.set(d, (incomeByDay.get(d) || 0) + inc.amount);
+      }
+      for(const exp of state.expenses){
+        const [yy,mm,d] = exp.date.split("-").map(Number);
+        if(yy === y && (mm-1) === m0) expenseByDay.set(d, (expenseByDay.get(d) || 0) + exp.amount);
+      }
+
+      const data = [];
+      let bal = parseNumber(state.checkingStart);
+      for(let day=1; day<=dim; day++){
+        bal += (incomeByDay.get(day) || 0);
+        bal -= (expenseByDay.get(day) || 0);
+        data.push(Number(bal.toFixed(2)));
+      }
+
+      return { labels, data };
+    }
+
+    function niceStep(range, targetTicks){
+      if(range <= 0) return 1;
+      const rough = range / Math.max(1, targetTicks);
+      const pow10 = Math.pow(10, Math.floor(Math.log10(rough)));
+      const r = rough / pow10;
+      const nice = (r <= 1) ? 1 : (r <= 2) ? 2 : (r <= 5) ? 5 : 10;
+      return nice * pow10;
+    }
+
+    function computeNiceScale(values, tickCount=5){
+      let min = Infinity, max = -Infinity;
+      for(const v of values){
+        if(!Number.isFinite(v)) continue;
+        if(v < min) min = v;
+        if(v > max) max = v;
+      }
+      if(min === Infinity){ min = 0; max = 1; }
+      if(min === max){
+        const bump = Math.max(1, Math.abs(min) * 0.1);
+        min -= bump;
+        max += bump;
+      }
+      const pad = (max - min) * 0.10;
+      min -= pad;
+      max += pad;
+
+      const step = niceStep(max - min, tickCount);
+      const niceMin = Math.floor(min / step) * step;
+      const niceMax = Math.ceil(max / step) * step;
+
+      const ticks = [];
+      for(let t = niceMin; t <= niceMax + step/2; t += step){
+        ticks.push(Number(t.toFixed(10)));
+      }
+      return { yMin: niceMin, yMax: niceMax, ticks };
+    }
+
+    (function runTests(){
+      const s1 = computeNiceScale([0, 1000, 2000], 5);
+      console.assert(s1.yMax > s1.yMin);
+      console.assert(Array.isArray(s1.ticks) && s1.ticks.length >= 2);
+      const s2 = computeNiceScale([500, 500, 500], 5);
+      console.assert(s2.yMax > s2.yMin);
+      const s3 = computeNiceScale([-200, 100, 900], 5);
+      console.assert(s3.yMin < 0 && s3.yMax > 0);
+    })();
+
+    const canvas = $("balanceChart");
+    const ctx = canvas.getContext("2d");
+
+    let chartModel = {
+      labels: [],
+      data: [],
+      hoverIndex: -1,
+      yMin: 0,
+      yMax: 1,
+      ticks: [0,1],
+      padL: 46,
+      padR: 14,
+      plotW: 1,
+      padT: 12,
+      padB: 26,
+      plotH: 1
+    };
+
+    function resizeCanvas(){
+      const rect = canvas.getBoundingClientRect();
+      const parent = canvas.parentElement;
+      const fallbackW = parent ? parent.clientWidth : 800;
+      const fallbackH = parent ? parent.clientHeight : 340;
+      const cssW = (rect.width && rect.width > 10) ? rect.width : (fallbackW || 800);
+      const cssH = (rect.height && rect.height > 10) ? rect.height : (fallbackH || 340);
+
+      canvas.style.width = cssW + "px";
+      canvas.style.height = cssH + "px";
+
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      canvas.width = Math.floor(cssW * dpr);
+      canvas.height = Math.floor(cssH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      drawChart();
+    }
+
+    function drawChart(){
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      ctx.clearRect(0,0,w,h);
+
+      const padR = chartModel.padR;
+      const padT = chartModel.padT;
+      const padB = chartModel.padB;
+
+      const yMin = Number.isFinite(chartModel.yMin) ? chartModel.yMin : 0;
+      const yMax = Number.isFinite(chartModel.yMax) ? chartModel.yMax : 1;
+      const ticks = Array.isArray(chartModel.ticks) && chartModel.ticks.length ? chartModel.ticks : [yMin, (yMin+yMax)/2, yMax];
+
+      ctx.font = "12px ui-sans-serif, system-ui";
+      let maxLabelW = 0;
+      for(const v of ticks){
+        maxLabelW = Math.max(maxLabelW, ctx.measureText(money(v)).width);
+      }
+      const padL = Math.max(46, Math.ceil(maxLabelW + 14));
+
+      const plotW = Math.max(1, w - padL - padR);
+      const plotH = Math.max(1, h - padT - padB);
+
+      chartModel.padL = padL;
+      chartModel.plotW = plotW;
+      chartModel.plotH = plotH;
+
+      ctx.strokeStyle = "rgba(255,255,255,.07)";
+      ctx.lineWidth = 1;
+      ctx.fillStyle = "rgba(169,176,189,.9)";
+      ctx.font = "12px ui-sans-serif, system-ui";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+
+      const denom = (yMax - yMin) || 1;
+      for(const v of ticks){
+        const t = (v - yMin) / denom;
+        const yy = padT + (plotH * (1 - t));
+        ctx.beginPath();
+        ctx.moveTo(padL, yy);
+        ctx.lineTo(w-padR, yy);
+        ctx.stroke();
+        ctx.fillText(money(v), padL-8, yy);
+      }
+
+      if(!chartModel.data.length) return;
+
+      const n = chartModel.data.length;
+      const xFor = (i) => padL + (plotW * (n===1 ? 0 : i/(n-1)));
+      const yFor = (v) => {
+        const vv = Number.isFinite(v) ? v : yMin;
+        const t = (vv - yMin) / denom;
+        const clampedT = Math.max(0, Math.min(1, t));
+        return padT + (plotH * (1 - clampedT));
+      };
+
+      ctx.strokeStyle = "rgba(110,231,255,.9)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for(let i=0; i<n; i++){
+        const x = xFor(i);
+        const yy = yFor(chartModel.data[i]);
+        if(i===0) ctx.moveTo(x,yy);
+        else ctx.lineTo(x,yy);
+      }
+      ctx.stroke();
+
+      if(chartModel.hoverIndex >= 0){
+        const i = chartModel.hoverIndex;
+        const x = xFor(i);
+        const yy = yFor(chartModel.data[i]);
+        ctx.strokeStyle = "rgba(255,255,255,.25)";
+        ctx.beginPath();
+        ctx.moveTo(x, padT);
+        ctx.lineTo(x, padT + plotH);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(110,231,255,1)";
+        ctx.beginPath();
+        ctx.arc(x, yy, 4, 0, Math.PI*2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "rgba(169,176,189,.85)";
+      ctx.font = "12px ui-sans-serif, system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      const labels = chartModel.labels;
+      const step = Math.max(1, Math.floor(labels.length / 6));
+      for(let i=0; i<labels.length; i+=step){
+        const x = xFor(i);
+        const y = padT + plotH + 8;
+        ctx.fillText(String(labels[i]), x, y);
+      }
+    }
+
+    function updateHoverUI(){
+      const strong = $("hoverValue").querySelector("strong");
+      const dateEl = $("hoverDate");
+      if(chartModel.hoverIndex < 0){
+        strong.textContent = "—";
+        dateEl.textContent = "—";
+        return;
+      }
+      const day = chartModel.labels[chartModel.hoverIndex];
+      const val = chartModel.data[chartModel.hoverIndex];
+      const dt = new Date(state.viewYear, state.viewMonth, Number(day));
+      strong.textContent = money(val);
+      dateEl.textContent = dt.toLocaleDateString(undefined, { month:"short", day:"numeric" });
+    }
+
+    function updateChart(){
+      const proj = buildDailyProjection();
+      chartModel.labels = proj.labels;
+      chartModel.data = proj.data;
+      chartModel.hoverIndex = -1;
+
+      const scale = computeNiceScale(proj.data, 5);
+      chartModel.yMin = scale.yMin;
+      chartModel.yMax = scale.yMax;
+      chartModel.ticks = scale.ticks;
+
+      updateHoverUI();
+      drawChart();
+    }
+
+    function localPointFromEvent(e){
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX ?? 0) - rect.left;
+      const y = (e.clientY ?? 0) - rect.top;
+      return { x, y, rect };
+    }
+
+    function hoverIndexFromX(x){
+      const n = chartModel.data.length;
+      if(n <= 0) return -1;
+      const padL = chartModel.padL;
+      const plotW = chartModel.plotW;
+      const rel = (x - padL) / (plotW || 1);
+      const t = Math.max(0, Math.min(1, rel));
+      const idx = Math.round(t * (n - 1));
+      return Math.max(0, Math.min(n-1, idx));
+    }
+
+    canvas.addEventListener("mousemove", (e) => {
+      if(!chartModel.data.length) return;
+      const { x } = localPointFromEvent(e);
+      const idx = hoverIndexFromX(x);
+      if(idx !== chartModel.hoverIndex){
+        chartModel.hoverIndex = idx;
+        updateHoverUI();
+        drawChart();
+      }
+    });
+
+    canvas.addEventListener("mouseleave", () => {
+      if(chartModel.hoverIndex !== -1){
+        chartModel.hoverIndex = -1;
+        updateHoverUI();
+        drawChart();
+      }
+    });
+
+    $("prevMonthBtn").addEventListener("click", () => {
+      const y = state.viewYear;
+      const m0 = state.viewMonth;
+      const ny = (m0 === 0) ? (y - 1) : y;
+      const nm = (m0 === 0) ? 11 : (m0 - 1);
+      setViewMonth(ny, nm);
+    });
+
+    $("nextMonthBtn").addEventListener("click", () => {
+      const y = state.viewYear;
+      const m0 = state.viewMonth;
+      const ny = (m0 === 11) ? (y + 1) : y;
+      const nm = (m0 === 11) ? 0 : (m0 + 1);
+      setViewMonth(ny, nm);
+    });
+
+    $("monthPicker").addEventListener("change", (e) => {
+      const v = e.target.value;
+      if(!v) return;
+      const [yy, mm] = v.split("-").map(Number);
+      if(!Number.isFinite(yy) || !Number.isFinite(mm)) return;
+      setViewMonth(yy, mm-1, { syncPicker:false });
+    });
+
+    $("saveCheckingBtn").addEventListener("click", () => {
+      const card = $("checkingCard");
+      const err = $("checkingError");
+      const inp = $("checkingInput");
+      clearInvalid([inp]);
+      clearInlineError(err);
+
+      state.checkingStart = parseNumber(inp.value);
+      saveState();
+      renderBalances();
+      renderTotals();
+      updateChart();
+    });
+
+    $("resetAllBtn").addEventListener("click", () => {
+      state = clone(defaultState);
+      editExpenseId = null;
+      editIncomeId = null;
+      editCardId = null;
+      undoState = null;
+      clearToast();
+
+      setExpenseMode(false);
+      setIncomeMode(false);
+      setCardMode(false);
+
+      saveState();
+      renderMonthUI();
+      renderBalances();
+      renderCards();
+      renderTables();
+      renderTotals();
+      updateChart();
+    });
+
+    $("addCardBtn").addEventListener("click", () => {
+      const cardEl = $("cardsCard");
+      const err = $("ccError");
+      const issuerEl = $("cc_issuer");
+      const balEl = $("cc_balance");
+
+      clearInvalid([issuerEl, balEl]);
+      clearInlineError(err);
+
+      const issuer = String(issuerEl.value || "").trim().slice(0,60);
+      const balance = parseNumber(balEl.value);
+      if(!issuer){
+        showInlineError(cardEl, [issuerEl], err, "Issuer name is required.");
+        return;
+      }
+
+      if(editCardId){
+        const idx = state.cards.findIndex(x => x.id === editCardId);
+        if(idx >= 0){
+          state.cards[idx].issuer = issuer;
+          state.cards[idx].balance = balance;
+        }
+        editCardId = null;
+        setCardMode(false);
+      } else {
+        state.cards.push({ id: makeId(), issuer, balance });
+      }
+
+      state.cards.sort((a,b)=> (a.issuer||"").localeCompare(b.issuer||""));
+      issuerEl.value = "";
+      balEl.value = "";
+      saveState();
+      renderCards();
+      renderTotals();
+    });
+
+    $("clearCardsBtn").addEventListener("click", () => {
+      state.cards = [];
+      editCardId = null;
+      setCardMode(false);
+      $("cc_issuer").value = "";
+      $("cc_balance").value = "";
+      clearInlineError($("ccError"));
+      saveState();
+      renderCards();
+      renderTotals();
+    });
+
+    $("cardsTable").addEventListener("click", (e) => {
+      const el = e.target;
+      const edit = el?.getAttribute?.("data-edit-card");
+      const del = el?.getAttribute?.("data-del-card");
+
+      if(edit){
+        const card = state.cards.find(x => x.id === edit);
+        if(!card) return;
+        editCardId = edit;
+        $("cc_issuer").value = card.issuer;
+        $("cc_balance").value = String(card.balance ?? "");
+        clearInlineError($("ccError"));
+        clearInvalid([$("cc_issuer"), $("cc_balance")]);
+        setCardMode(true);
+      }
+
+      if(del){
+        const idx = state.cards.findIndex(x => x.id === del);
+        const removed = state.cards[idx];
+        state.cards = state.cards.filter(x => x.id !== del);
+
+        if(editCardId === del){
+          editCardId = null;
+          setCardMode(false);
+          $("cc_issuer").value = "";
+          $("cc_balance").value = "";
+        }
+
+        undoState = { type:"card", item: removed, index: idx };
+        showToast("Card deleted.", [
+          { label:"Undo", onClick: () => {
+              if(!undoState) return;
+              state.cards.splice(Math.max(0, Math.min(state.cards.length, undoState.index)), 0, undoState.item);
+              state.cards.sort((a,b)=> (a.issuer||"").localeCompare(b.issuer||""));
+              undoState = null;
+              clearToast();
+              saveState();
+              renderCards();
+              renderTotals();
+            }
+          },
+          { label:"Dismiss", secondary:true, onClick: () => { undoState = null; clearToast(); } }
+        ]);
+        scheduleToastClear(8000);
+
+        saveState();
+        renderCards();
+        renderTotals();
+      }
+    });
+
+    $("addExpenseBtn").addEventListener("click", () => {
+      const cardEl = $("expensesCard");
+      const err = $("expError");
+      const nameEl = $("exp_name");
+      const amtEl = $("exp_amount");
+      const dateEl = $("exp_date");
+
+      clearInvalid([nameEl, amtEl, dateEl]);
+      clearInlineError(err);
+
+      const name = String(nameEl.value || "").trim().slice(0,60);
+      const amount = Math.abs(parseNumber(amtEl.value));
+      const date = safeDateStr(dateEl.value);
+      if(!name || !date){
+        showInlineError(cardEl, [!name ? nameEl : null, !date ? dateEl : null].filter(Boolean), err, "Please enter an expense name and due date.");
+        return;
+      }
+
+      if(editExpenseId){
+        const idx = state.expenses.findIndex(x => x.id === editExpenseId);
+        if(idx >= 0){
+          state.expenses[idx].name = name;
+          state.expenses[idx].amount = amount;
+          state.expenses[idx].date = date;
+        }
+        editExpenseId = null;
+        setExpenseMode(false);
+      } else {
+        state.expenses.push({ id: makeId(), name, amount, date });
+      }
+
+      state.expenses.sort(sortByDateAsc);
+      nameEl.value = "";
+      amtEl.value = "";
+      saveState();
+      renderTables();
+      renderTotals();
+      updateChart();
+    });
+
+    $("clearExpensesBtn").addEventListener("click", () => {
+      state.expenses = [];
+      editExpenseId = null;
+      setExpenseMode(false);
+      $("exp_name").value = "";
+      $("exp_amount").value = "";
+      clearInlineError($("expError"));
+      clearInvalid([$("exp_name"),$("exp_amount"),$("exp_date")]);
+
+      const suggestedDay = clampDayToMonth(state.viewYear, state.viewMonth, now.getDate());
+      $("exp_date").value = isoDate(new Date(state.viewYear, state.viewMonth, suggestedDay));
+
+      saveState();
+      renderTables();
+      renderTotals();
+      updateChart();
+    });
+
+    $("addIncomeBtn").addEventListener("click", () => {
+      const cardEl = $("incomeCard");
+      const err = $("incError");
+      const fromEl = $("inc_from");
+      const amtEl = $("inc_amount");
+      const dateEl = $("inc_date");
+
+      clearInvalid([fromEl, amtEl, dateEl]);
+      clearInlineError(err);
+
+      const from = String(fromEl.value || "").trim().slice(0,60);
+      const amount = Math.abs(parseNumber(amtEl.value));
+      const date = safeDateStr(dateEl.value);
+      if(!from || !date){
+        showInlineError(cardEl, [!from ? fromEl : null, !date ? dateEl : null].filter(Boolean), err, "Please enter who it's from and a deposit date.");
+        return;
+      }
+
+      if(editIncomeId){
+        const idx = state.income.findIndex(x => x.id === editIncomeId);
+        if(idx >= 0){
+          state.income[idx].from = from;
+          state.income[idx].amount = amount;
+          state.income[idx].date = date;
+        }
+        editIncomeId = null;
+        setIncomeMode(false);
+      } else {
+        state.income.push({ id: makeId(), from, amount, date });
+      }
+
+      state.income.sort(sortByDateAsc);
+      fromEl.value = "";
+      amtEl.value = "";
+      saveState();
+      renderTables();
+      renderTotals();
+      updateChart();
+    });
+
+    $("clearIncomeBtn").addEventListener("click", () => {
+      state.income = [];
+      editIncomeId = null;
+      setIncomeMode(false);
+      $("inc_from").value = "";
+      $("inc_amount").value = "";
+      clearInlineError($("incError"));
+      clearInvalid([$("inc_from"),$("inc_amount"),$("inc_date")]);
+
+      const suggestedDay = clampDayToMonth(state.viewYear, state.viewMonth, now.getDate());
+      $("inc_date").value = isoDate(new Date(state.viewYear, state.viewMonth, suggestedDay));
+
+      saveState();
+      renderTables();
+      renderTotals();
+      updateChart();
+    });
+
+    $("expensesTable").addEventListener("click", (e) => {
+      const el = e.target;
+      const edit = el?.getAttribute?.("data-edit-exp");
+      const del = el?.getAttribute?.("data-del-exp");
+
+      if(edit){
+        const item = state.expenses.find(x => x.id === edit);
+        if(!item) return;
+        editExpenseId = edit;
+        setExpenseMode(true);
+        $("exp_name").value = item.name;
+        $("exp_amount").value = String(item.amount ?? "");
+        $("exp_date").value = item.date;
+        clearInlineError($("expError"));
+        clearInvalid([$("exp_name"),$("exp_amount"),$("exp_date")]);
+      }
+
+      if(del){
+        const idx = state.expenses.findIndex(x => x.id === del);
+        const removed = state.expenses[idx];
+        state.expenses = state.expenses.filter(x => x.id !== del);
+
+        if(editExpenseId === del){
+          editExpenseId = null;
+          setExpenseMode(false);
+          $("exp_name").value = "";
+          $("exp_amount").value = "";
+        }
+
+        undoState = { type:"expense", item: removed, index: idx };
+        showToast("Expense deleted.", [
+          { label:"Undo", onClick: () => {
+              if(!undoState) return;
+              state.expenses.splice(Math.max(0, Math.min(state.expenses.length, undoState.index)), 0, undoState.item);
+              state.expenses.sort(sortByDateAsc);
+              undoState = null;
+              clearToast();
+              saveState();
+              renderTables();
+              renderTotals();
+              updateChart();
+            }
+          },
+          { label:"Dismiss", secondary:true, onClick: () => { undoState = null; clearToast(); } }
+        ]);
+        scheduleToastClear(8000);
+
+        saveState();
+        renderTables();
+        renderTotals();
+        updateChart();
+      }
+    });
+
+    $("incomeTable").addEventListener("click", (e) => {
+      const el = e.target;
+      const edit = el?.getAttribute?.("data-edit-inc");
+      const del = el?.getAttribute?.("data-del-inc");
+
+      if(edit){
+        const item = state.income.find(x => x.id === edit);
+        if(!item) return;
+        editIncomeId = edit;
+        setIncomeMode(true);
+        $("inc_from").value = item.from;
+        $("inc_amount").value = String(item.amount ?? "");
+        $("inc_date").value = item.date;
+        clearInlineError($("incError"));
+        clearInvalid([$("inc_from"),$("inc_amount"),$("inc_date")]);
+      }
+
+      if(del){
+        const idx = state.income.findIndex(x => x.id === del);
+        const removed = state.income[idx];
+        state.income = state.income.filter(x => x.id !== del);
+
+        if(editIncomeId === del){
+          editIncomeId = null;
+          setIncomeMode(false);
+          $("inc_from").value = "";
+          $("inc_amount").value = "";
+        }
+
+        undoState = { type:"income", item: removed, index: idx };
+        showToast("Income entry deleted.", [
+          { label:"Undo", onClick: () => {
+              if(!undoState) return;
+              state.income.splice(Math.max(0, Math.min(state.income.length, undoState.index)), 0, undoState.item);
+              state.income.sort(sortByDateAsc);
+              undoState = null;
+              clearToast();
+              saveState();
+              renderTables();
+              renderTotals();
+              updateChart();
+            }
+          },
+          { label:"Dismiss", secondary:true, onClick: () => { undoState = null; clearToast(); } }
+        ]);
+        scheduleToastClear(8000);
+
+        saveState();
+        renderTables();
+        renderTotals();
+        updateChart();
+      }
+    });
+
+    function cancelEdits(section){
+      if(section === "expense"){
+        editExpenseId = null;
+        setExpenseMode(false);
+        $("exp_name").value = "";
+        $("exp_amount").value = "";
+        clearInlineError($("expError"));
+        clearInvalid([$("exp_name"),$("exp_amount"),$("exp_date")]);
+      }
+      if(section === "income"){
+        editIncomeId = null;
+        setIncomeMode(false);
+        $("inc_from").value = "";
+        $("inc_amount").value = "";
+        clearInlineError($("incError"));
+        clearInvalid([$("inc_from"),$("inc_amount"),$("inc_date")]);
+      }
+      if(section === "card"){
+        editCardId = null;
+        setCardMode(false);
+        $("cc_issuer").value = "";
+        $("cc_balance").value = "";
+        clearInlineError($("ccError"));
+        clearInvalid([$("cc_issuer"),$("cc_balance")]);
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      const tag = (e.target?.tagName || "").toUpperCase();
+      const isTyping = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+
+      if(e.key === "Escape"){
+        if(editExpenseId) cancelEdits("expense");
+        if(editIncomeId) cancelEdits("income");
+        if(editCardId) cancelEdits("card");
+        return;
+      }
+
+      if(e.key === "Enter" && isTyping){
+        const id = e.target?.id || "";
+        if(["exp_name","exp_amount","exp_date"].includes(id)){
+          e.preventDefault();
+          $("addExpenseBtn").click();
+        }
+        if(["inc_from","inc_amount","inc_date"].includes(id)){
+          e.preventDefault();
+          $("addIncomeBtn").click();
+        }
+        if(["cc_issuer","cc_balance"].includes(id)){
+          e.preventDefault();
+          $("addCardBtn").click();
+        }
+        if(id === "checkingInput"){
+          e.preventDefault();
+          $("saveCheckingBtn").click();
+        }
+      }
+
+      if(!isTyping && (e.key === "ArrowLeft" || e.key === "ArrowRight")){
+        e.preventDefault();
+        if(e.key === "ArrowLeft") $("prevMonthBtn").click();
+        else $("nextMonthBtn").click();
+      }
+    });
+
+    function init(){
+      setExpenseMode(false);
+      setIncomeMode(false);
+      setCardMode(false);
+
+      renderMonthUI();
+
+      const suggestedDay = clampDayToMonth(state.viewYear, state.viewMonth, now.getDate());
+      const suggested = isoDate(new Date(state.viewYear, state.viewMonth, suggestedDay));
+      if(!$("exp_date").value) $("exp_date").value = suggested;
+      if(!$("inc_date").value) $("inc_date").value = suggested;
+
+      renderBalances();
+      renderCards();
+      renderTables();
+      renderTotals();
+      updateChart();
+      resizeCanvas();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    init();
+  </script>
+</body>
+</html>
