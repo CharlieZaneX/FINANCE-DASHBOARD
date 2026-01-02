@@ -5,25 +5,26 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Finance Dashboard (Preview)</title>
   <style>
-    .card.editing{box-shadow: 0 0 0 1px rgba(255,77,222,.22) inset, var(--shadow), 0 0 34px rgba(255,77,222,.14);}
-    .card.editing input{border-color: rgba(255,77,222,.55); box-shadow: 0 0 0 3px rgba(255,77,222,.12), 0 0 26px rgba(255,77,222,.10);}
+    .card.editing{box-shadow: 0 0 0 1px rgba(255,77,222,.22) inset, var(--shadow), 0 0 34px rgba(255,77,222,.14);} 
+    .card.editing input{border-color: rgba(255,77,222,.55); box-shadow: 0 0 0 3px rgba(255,77,222,.12), 0 0 26px rgba(255,77,222,.10);} 
 
-    .table tbody tr:hover{background: rgba(110,231,255,.06);}
+    .table tbody tr:hover{background: rgba(110,231,255,.06);} 
 
-    .pill.goodPill{border-color: rgba(124,255,107,.35); box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset, 0 0 22px rgba(124,255,107,.16);}
-    .pill.badPill{border-color: rgba(255,59,122,.35); box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset, 0 0 22px rgba(255,59,122,.16);}
+    .pill.goodPill{border-color: rgba(124,255,107,.35); box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset, 0 0 22px rgba(124,255,107,.16);} 
+    .pill.badPill{border-color: rgba(255,59,122,.35); box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset, 0 0 22px rgba(255,59,122,.16);} 
 
-    .invalid{border-color: rgba(255,59,122,.65) !important; box-shadow: 0 0 0 3px rgba(255,59,122,.14), 0 0 26px rgba(255,59,122,.10) !important;}
-    .inlineError{min-height:16px; margin-top:6px; font-size:12px; font-family: var(--mono); color: rgba(255,59,122,.92); text-shadow: 0 0 10px rgba(255,59,122,.10);}
-    .shake{animation: shake .28s ease-in-out 0s 1;}
+    .invalid{border-color: rgba(255,59,122,.65) !important; box-shadow: 0 0 0 3px rgba(255,59,122,.14), 0 0 26px rgba(255,59,122,.10) !important;} 
+    .inlineError{min-height:16px; margin-top:6px; font-size:12px; font-family: var(--mono); color: rgba(255,59,122,.92); text-shadow: 0 0 10px rgba(255,59,122,.10);} 
+    .shake{animation: shake .28s ease-in-out 0s 1;} 
     @keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}100%{transform:translateX(0)}}
 
-    .toastHost{position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:9999; width:min(520px, calc(100% - 24px)); pointer-events:none;}
-    .toast{pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 12px; border-radius:14px; border:1px solid rgba(110,231,255,.18); background: rgba(9,12,20,.92); box-shadow: var(--shadow); font-family: var(--mono);}
-    .toast .msg{font-size:12px; color: rgba(234,242,255,.9);}
-    .toast .actions{display:flex; gap:10px;}
-    .toast .tbtn{height:28px; padding:0 10px; border-radius:12px; font-size:12px; width:auto;}
-    .toast .tbtn.secondary{background: rgba(255,255,255,.03);}
+    .toastHost{position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:9999; width:min(520px, calc(100% - 24px)); pointer-events:none;} 
+    .toast{pointer-events:auto; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 12px; border-radius:14px; border:1px solid rgba(110,231,255,.18); background: rgba(9,12,20,.92); box-shadow: var(--shadow); font-family: var(--mono);} 
+    .toast .msg{font-size:12px; color: rgba(234,242,255,.9);} 
+    .toast .actions{display:flex; gap:10px;} 
+    .toast .tbtn{height:28px; padding:0 10px; border-radius:12px; font-size:12px; width:auto;} 
+    .toast .tbtn.secondary{background: rgba(255,255,255,.03);} 
+
     :root{
       --bg:#070A12;
       --bg2:#050612;
@@ -192,14 +193,7 @@
       min-width:0;
     }
 
-    /* Month card header is a single control group, so center it */
-    .monthCard .title{
-      justify-content:center;
-    }
-    .monthCard .monthControls{
-      width:100%;
-      justify-content:center;
-    }
+    .monthCard .title{justify-content:center;}
 
     @media (max-width: 520px){
       .card .title{flex-wrap:wrap;}
@@ -252,6 +246,7 @@
       gap:8px;
       flex-wrap:nowrap;
       min-width:0;
+      width:100%;
     }
 
     .miniBtn{
@@ -268,7 +263,7 @@
       box-shadow: 0 0 18px rgba(110,231,255,.06);
       flex:0 0 auto;
     }
-    .miniBtn:hover{transform: translateY(-1px);}
+    .miniBtn:hover{transform: translateY(-1px);} 
 
     .monthInput{
       height: 30px;
@@ -334,8 +329,8 @@
       border:1px solid rgba(110,231,255,.35);
     }
 
-    button:hover{transform: translateY(-1px);}
-    button:active{transform: translateY(0px) scale(.99);}
+    button:hover{transform: translateY(-1px);} 
+    button:active{transform: translateY(0px) scale(.99);} 
 
     button.secondary{
       background: rgba(255,255,255,.03);
@@ -355,7 +350,7 @@
       letter-spacing: .15px;
       text-shadow: 0 0 10px rgba(110,231,255,.06);
     }
-    .hint{margin-top:4px;}
+    .hint{margin-top:4px;} 
     .muted{color: rgba(154,166,196,.95); font-family: var(--mono);} 
 
     .tableWrap{margin-top:12px;}
@@ -461,7 +456,7 @@
       background: rgba(255,59,122,.12);
       border:1px solid rgba(255,59,122,.30);
     }
-    .actionBtn:hover,.delbtn:hover{transform: translateY(-1px);}
+    .actionBtn:hover,.delbtn:hover{transform: translateY(-1px);} 
 
     @media (prefers-reduced-motion: reduce){
       body::after, .card::after{animation:none !important;}
@@ -481,16 +476,20 @@
 
     <div class="grid">
       <div class="leftcol">
-        <div class="card monthCard">
+        <div class="card monthCard" id="monthCard">
           <div class="title">
-            <div class="monthControls" aria-label="Month selector">
-              <button class="miniBtn" id="prevMonthBtn" title="Previous month" aria-label="Previous month">◀</button>
+            <div class="monthControls" aria-label="Month controls">
+              <button class="miniBtn" id="prevMonthBtn" title="Previous month" aria-label="Previous month">←</button>
               <input class="monthInput" id="monthPicker" type="month" aria-label="Select month" />
-              <button class="miniBtn" id="nextMonthBtn" title="Next month" aria-label="Next month">▶</button>
+              <button class="miniBtn" id="nextMonthBtn" title="Next month" aria-label="Next month">→</button>
             </div>
           </div>
           <div class="big" id="monthName">—</div>
-          
+          <div class="row" style="justify-content:center; margin-top:10px; gap:10px;">
+            <button type="button" class="secondary" id="exportBtn" style="width:auto; padding:10px 12px;">EXPORT</button>
+            <button type="button" class="secondary" id="importBtn" style="width:auto; padding:10px 12px;">IMPORT</button>
+            <input id="importFile" type="file" accept="application/json" style="display:none" />
+          </div>
         </div>
 
         <div class="card" id="netCard">
@@ -508,7 +507,7 @@
           </div>
           <div class="big"><span id="checkingDisplay">$0.00</span></div>
 
-          <label for="checkingInput">Set starting checking balance (used for projections)</label>
+          <label for="checkingInput">Set starting checking balance for selected month (carryover applies if not manually set)</label>
           <input id="checkingInput" type="number" step="0.01" placeholder="e.g. 4072.93" />
           <div class="btnrow">
             <button id="saveCheckingBtn">Save balance</button>
@@ -789,6 +788,7 @@
     const KEY = "finance_dashboard_preview_v2";
 
     const defaultState = {
+      checkingByMonth: {},
       checkingStart: 0,
       viewYear: now.getFullYear(),
       viewMonth: now.getMonth(),
@@ -850,6 +850,18 @@
         st.viewYear = Number.isFinite(Number(s.viewYear)) ? Number(s.viewYear) : defaultState.viewYear;
         st.viewMonth = Number.isFinite(Number(s.viewMonth)) ? Number(s.viewMonth) : defaultState.viewMonth;
 
+        const rawMap = (s && typeof s.checkingByMonth === "object" && s.checkingByMonth) ? s.checkingByMonth : null;
+        if(rawMap){
+          st.checkingByMonth = {};
+          for(const [k,v] of Object.entries(rawMap)){
+            if(typeof k === "string" && /^[0-9]{4}-[0-9]{2}$/.test(k)) st.checkingByMonth[k] = parseNumber(v);
+          }
+        } else {
+          st.checkingByMonth = {};
+          const curKey = `${st.viewYear}-${String(st.viewMonth+1).padStart(2,'0')}`;
+          if(st.checkingStart) st.checkingByMonth[curKey] = st.checkingStart;
+        }
+
         st.cards = Array.isArray(s.cards) ? s.cards.map(x => ({
           id: x.id || makeId(),
           issuer: String(x.issuer || "").slice(0, 60),
@@ -887,6 +899,65 @@
     function clampDayToMonth(y, m0, day){ return Math.max(1, Math.min(daysIn(y,m0), day)); }
     function ymToMonthValue(y, m0){ return `${y}-${String(m0+1).padStart(2,'0')}`; }
 
+    function monthKey(y, m0){ return `${y}-${String(m0+1).padStart(2,'0')}`; }
+
+    function prevMonth(y, m0){
+      if(m0 === 0) return { y: y-1, m0: 11 };
+      return { y, m0: m0-1 };
+    }
+
+    function getMonthlyIncomeTotal(y, m0){
+      return state.income.reduce((sum, i) => {
+        const [yy, mm] = (i.date || "").split("-").map(Number);
+        return (yy === y && (mm-1) === m0) ? (sum + parseNumber(i.amount)) : sum;
+      }, 0);
+    }
+
+    function getMonthlyExpenseTotal(y, m0){
+      return state.expenses.reduce((sum, e) => {
+        const [yy, mm] = (e.date || "").split("-").map(Number);
+        return (yy === y && (mm-1) === m0) ? (sum + parseNumber(e.amount)) : sum;
+      }, 0);
+    }
+
+    function computeMonthEndBalance(y, m0, memo=new Map()){
+      const key = monthKey(y, m0);
+      if(memo.has(key)) return memo.get(key);
+
+      let start;
+      if(Object.prototype.hasOwnProperty.call(state.checkingByMonth || {}, key)){
+        start = parseNumber(state.checkingByMonth[key]);
+      } else {
+        const prev = prevMonth(y, m0);
+        const hasAnyManual = state.checkingByMonth && Object.keys(state.checkingByMonth).length > 0;
+        start = hasAnyManual ? computeMonthEndBalance(prev.y, prev.m0, memo) : 0;
+      }
+
+      const inc = getMonthlyIncomeTotal(y, m0);
+      const exp = getMonthlyExpenseTotal(y, m0);
+      const end = Number((start + inc - exp).toFixed(2));
+      memo.set(key, end);
+      return end;
+    }
+
+    function getStartBalanceForMonth(y, m0){
+      const key = monthKey(y, m0);
+      if(Object.prototype.hasOwnProperty.call(state.checkingByMonth || {}, key)){
+        return parseNumber(state.checkingByMonth[key]);
+      }
+      const prev = prevMonth(y, m0);
+      const hasAnyManual = state.checkingByMonth && Object.keys(state.checkingByMonth).length > 0;
+      if(!hasAnyManual) return 0;
+      return computeMonthEndBalance(prev.y, prev.m0);
+    }
+
+    function setStartBalanceForCurrentMonth(val){
+      const key = monthKey(state.viewYear, state.viewMonth);
+      state.checkingByMonth = state.checkingByMonth || {};
+      state.checkingByMonth[key] = parseNumber(val);
+      state.checkingStart = parseNumber(val);
+    }
+
     function renderMonthUI(opts={ syncPicker:true }){
       const y = state.viewYear;
       const m0 = state.viewMonth;
@@ -904,6 +975,7 @@
       state.viewMonth = m0;
       saveState();
       renderMonthUI(opts);
+      renderBalances();
       renderTotals();
       updateChart();
 
@@ -945,7 +1017,6 @@
       animateCurrency(ccEl, ccTotal);
       animateCurrency(expEl, expTotal);
       animateCurrency(incEl, incTotal);
-
       animateCurrency(netPill, net);
       animateCurrency(netVal, net);
 
@@ -975,8 +1046,9 @@
     }
 
     function renderBalances(){
-      $("checkingDisplay").textContent = money(state.checkingStart);
-      $("checkingInput").value = state.checkingStart ? String(state.checkingStart) : "";
+      const start = getStartBalanceForMonth(state.viewYear, state.viewMonth);
+      $("checkingDisplay").textContent = money(start);
+      $("checkingInput").value = (start || start === 0) ? String(start) : "";
     }
 
     function renderCards(){
@@ -1075,7 +1147,7 @@
       }
 
       const data = [];
-      let bal = parseNumber(state.checkingStart);
+      let bal = parseNumber(getStartBalanceForMonth(y, m0));
       for(let day=1; day<=dim; day++){
         bal += (incomeByDay.get(day) || 0);
         bal -= (expenseByDay.get(day) || 0);
@@ -1130,6 +1202,33 @@
       console.assert(s2.yMax > s2.yMin);
       const s3 = computeNiceScale([-200, 100, 900], 5);
       console.assert(s3.yMin < 0 && s3.yMax > 0);
+
+      const prevState = state;
+      try{
+        state = {
+          viewYear: 2026,
+          viewMonth: 1,
+          checkingByMonth: { "2026-01": 1000 },
+          checkingStart: 1000,
+          cards: [],
+          expenses: [
+            { id:"e1", name:"Rent", amount: 200, date:"2026-01-10" },
+            { id:"e2", name:"Gym", amount: 50, date:"2026-02-05" }
+          ],
+          income: [
+            { id:"i1", from:"Pay", amount: 500, date:"2026-01-15" },
+            { id:"i2", from:"Pay", amount: 300, date:"2026-02-10" }
+          ]
+        };
+        const janEnd = computeMonthEndBalance(2026, 0);
+        console.assert(janEnd === 1300, "Jan end should be 1300");
+        const febStart = getStartBalanceForMonth(2026, 1);
+        console.assert(febStart === 1300, "Feb start should carry Jan end (1300)");
+        const febEnd = computeMonthEndBalance(2026, 1);
+        console.assert(febEnd === 1550, "Feb end should be 1550");
+      } finally {
+        state = prevState;
+      }
     })();
 
     const canvas = $("balanceChart");
@@ -1357,14 +1456,137 @@
       setViewMonth(yy, mm-1, { syncPicker:false });
     });
 
+    function exportJson(){
+      const payload = {
+        version: 3,
+        exportedAt: new Date().toISOString(),
+        state
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const name = `finance-dashboard-${monthKey(state.viewYear, state.viewMonth)}.json`;
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function importJsonFile(file){
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onerror = () => reject(new Error("Failed to read file"));
+        r.onload = () => {
+          try{
+            const raw = String(r.result || "");
+            const parsed = JSON.parse(raw);
+            const incoming = (parsed && parsed.state) ? parsed.state : parsed;
+            if(!incoming || typeof incoming !== "object") throw new Error("Invalid JSON");
+
+            const normalized = (function normalize(obj){
+              const s = obj;
+              const st = clone(defaultState);
+
+              st.viewYear = Number.isFinite(Number(s.viewYear)) ? Number(s.viewYear) : defaultState.viewYear;
+              st.viewMonth = Number.isFinite(Number(s.viewMonth)) ? Number(s.viewMonth) : defaultState.viewMonth;
+
+              const rawMap = (s && typeof s.checkingByMonth === "object" && s.checkingByMonth) ? s.checkingByMonth : null;
+              if(rawMap){
+                st.checkingByMonth = {};
+                for(const [k,v] of Object.entries(rawMap)){
+                  if(typeof k === "string" && /^[0-9]{4}-[0-9]{2}$/.test(k)) st.checkingByMonth[k] = parseNumber(v);
+                }
+              } else {
+                st.checkingByMonth = {};
+                const curKey = `${st.viewYear}-${String(st.viewMonth+1).padStart(2,'0')}`;
+                const legacy = parseNumber(s.checkingStart);
+                if(legacy) st.checkingByMonth[curKey] = legacy;
+              }
+              st.checkingStart = parseNumber(s.checkingStart);
+
+              st.cards = Array.isArray(s.cards) ? s.cards.map(x => ({
+                id: x.id || makeId(),
+                issuer: String(x.issuer || "").slice(0, 60),
+                balance: parseNumber(x.balance)
+              })).filter(x => x.issuer) : [];
+
+              st.expenses = Array.isArray(s.expenses) ? s.expenses.map(x => ({
+                id: x.id || makeId(),
+                name: String(x.name || "").slice(0, 60),
+                amount: parseNumber(x.amount),
+                date: safeDateStr(x.date)
+              })).filter(x => x.name && x.date) : [];
+
+              st.income = Array.isArray(s.income) ? s.income.map(x => ({
+                id: x.id || makeId(),
+                from: String(x.from || "").slice(0, 60),
+                amount: parseNumber(x.amount),
+                date: safeDateStr(x.date)
+              })).filter(x => x.from && x.date) : [];
+
+              st.cards.sort((a,b) => (a.issuer||"").localeCompare(b.issuer||""));
+              st.expenses.sort(sortByDateAsc);
+              st.income.sort(sortByDateAsc);
+              return st;
+            })(incoming);
+
+            resolve(normalized);
+          } catch(err){
+            reject(err);
+          }
+        };
+        r.readAsText(file);
+      });
+    }
+
+    $("exportBtn").addEventListener("click", exportJson);
+    $("importBtn").addEventListener("click", () => $("importFile").click());
+    $("importFile").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if(!file) return;
+      try{
+        const next = await importJsonFile(file);
+        state = next;
+        editExpenseId = null;
+        editIncomeId = null;
+        editCardId = null;
+        undoState = null;
+        clearToast();
+
+        setExpenseMode(false);
+        setIncomeMode(false);
+        setCardMode(false);
+
+        saveState();
+        renderMonthUI();
+        renderBalances();
+        renderCards();
+        renderTables();
+        renderTotals();
+        updateChart();
+        resizeCanvas();
+
+        showToast("Import complete.", [
+          { label:"Dismiss", secondary:true, onClick: () => { clearToast(); } }
+        ]);
+        scheduleToastClear(4500);
+      } catch(err){
+        showToast("Import failed: invalid JSON.", [
+          { label:"Dismiss", secondary:true, onClick: () => { clearToast(); } }
+        ]);
+        scheduleToastClear(6500);
+      }
+    });
+
     $("saveCheckingBtn").addEventListener("click", () => {
-      const card = $("checkingCard");
       const err = $("checkingError");
       const inp = $("checkingInput");
       clearInvalid([inp]);
       clearInlineError(err);
-
-      state.checkingStart = parseNumber(inp.value);
+      setStartBalanceForCurrentMonth(parseNumber(inp.value));
       saveState();
       renderBalances();
       renderTotals();
